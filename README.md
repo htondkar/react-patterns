@@ -163,6 +163,71 @@ withData({
 ---
 
 
+### withRedirect()
+Redirects user based on userType
+
+```
+/**
+ * provides a redirect method based on userType
+ * @param {object} urlByUser
+ * @param {string} urlByUser.ADMIN
+ * @param {string} urlByUser.REGULAR
+ * @param {string} urlByUser.SOME_OTHER_TYPE
+ */
+const withRedirect = urlByUser => Component => {
+  class WithRedirect extends React.Component {
+    getUserType = () => this.props.userType
+
+    redirect = param => {
+      const userType = this.getUserType()
+
+      if (!(userType in urlByUser)) this.error(userType)
+
+      const urlToRedirect = urlByUser[userType].replace('{}', param)
+      browserHistory.push(urlToRedirect)
+    }
+
+    error(userType) {
+      throw new Error(
+        `current user is a ${userType},
+         which is not included in the
+         withRedirect options`
+      )
+    }
+
+    render() {
+      return <Component {...this.props} redirectBasedOnUserType={this.redirect} />
+    }
+  }
+
+  WithRedirect.displayName = `withRedirect(${Component.displayName || Component.name})`
+
+  const mapStateToProps = state => ({ userType: state.userData.userType })
+  return connect(mapStateToProps)(WithRedirect)
+}
+
+export default withRedirect
+
+```
+
+Usage:
+
+```
+withData({
+  ADMIN: '/dashboard/stats/{}', // "{}" is a placeholder for params, etc...
+  REGULAR: '/dashboard/profile/{}'
+})(Component)
+```
+
+In the wrapped component: 
+
+```
+onDone() {
+  props.redirectBasedOnUser()
+}
+```
+
+
 
 
 
