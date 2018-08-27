@@ -227,6 +227,50 @@ onDone() {
 }
 ```
 
+---
+
+### withPropsMapper()
+modifies props with a mapperObject
+
+```
+/**
+ * iterates over all keys in the mapperObject and if the same key exists on the props,
+ * applies the mapper function on the prop
+ * @param {object} mapperObject
+ * @param {(value, allProps) => newValue } mapperObject.any
+ */
+const withPropsMapper = (mapperObject = {}) => WrappedComponent => {
+  const WithPropsMapper = props => {
+    // call the appropriate method on the mapperObject and pass the value and all props
+    const propsReducer = (acc, currentMapperKey) => {
+      acc[currentMapperKey] = mapperObject[currentMapperKey](
+        props[currentMapperKey],
+        props
+      )
+      return acc
+    }
+
+    // filter mapper object keys and reduce them to new props.
+    const mappedProps = Object.keys(mapperObject).reduce(propsReducer, {})
+
+    // let the mapped props override the default
+    return <WrappedComponent {...props} {...mappedProps} />
+  }
+
+  WithPropsMapper.displayName = `WithPropsMapper(${WrappedComponent.displayName ||
+    WrappedComponent.name})`
+
+  return WithPropsMapper
+}
+```
+Usage: 
+
+```
+const propsMapper = { orderId: (_, props) => props.match.params.orderId }
+export default withPropsMapper(propsMapper)(MyComponent)
+```
+
+---
 
 
 
